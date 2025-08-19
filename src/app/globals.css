@@ -1,4 +1,218 @@
+/* src/app/globals.css */
 @import "tailwindcss";
+
+/* Theme variables are defined on html.theme-dark / html.theme-light
+   and applied via more-specific selectors below so they override utilities. */
+
+/* Dark theme values
+  --bg-page: #07122b
+
+*/
+html.theme-dark {
+  --bg-page:  #101926;
+  --fg: #E6EEF8;
+  --card-bg: #0b1624;
+  --card-surface: #071926;
+  --text-primary: #E6EEF8;
+  --text-muted: #9AA8B2;
+  --accent: #0b63ff;
+  --border-soft: rgba(255,255,255,0.04);
+  --card-shadow: 0 10px 30px rgba(2,6,23,0.55);
+}
+
+/* Light theme values */
+html.theme-light {
+  --bg-page: #fbfdff;
+  --fg: #0f1724;
+  --card-bg: #eef2f6;
+  --card-surface: #EFF2F7;
+  --text-primary: #0f1724;
+  --text-muted: #475569;
+  --accent: #0b63ff;
+  --border-soft: rgba(15,23,42,0.06);
+  --card-shadow: 0 8px 22px rgba(2,6,23,0.06);
+}
+
+/* Fallbacks if JS disabled rely on user OS setting */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #07122b;
+    --fg: #E6EEF8;
+    --card-bg: #0b1624;
+    --card-surface: #071926;
+    --text-primary: #E6EEF8;
+    --border-soft: rgba(255,255,255,0.04);
+    --card-shadow: 0 10px 30px rgba(2,6,23,0.55);
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-page: #fbfdff;
+    --fg: #0f1724;
+    --card-bg: #eef2f6;
+    --card-surface:#ffffff;
+    --text-primary:#0f1724;
+    --border-soft: rgba(15,23,42,0.06);
+    --card-shadow: 0 8px 22px rgba(2,6,23,0.06);
+  }
+}
+
+/* Page base - use variable (these will follow html.theme-*) */
+html, body { height: 100%; }
+body {
+  background: var(--bg-page);
+  color: var(--fg);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background .18s ease, color .18s ease;
+}
+
+/* ---------------------------
+   Theme-aware overrides (high specificity)
+   These ensure Tailwind utilities do not mask the variables.
+   --------------------------- */
+
+/* Card container (override any Tailwind utility bg/border) */
+html.theme-dark .ecom-card,
+html.theme-light .ecom-card {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--card-shadow) !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border-soft) !important;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+/* Card inner body */
+html.theme-dark .card-body,
+html.theme-light .card-body {
+  background: var(--card-surface) !important;
+}
+
+/* Ensure images keep cover but don't overwrite backgrounds */
+html.theme-dark .ecom-card img,
+html.theme-light .ecom-card img {
+  object-fit: cover;
+  display: block;
+}
+
+/* Buttons (accent) */
+html.theme-dark .ecom-btn,
+html.theme-light .ecom-btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Muted text */
+html.theme-dark .text-muted,
+html.theme-light .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* If you used some Tailwind utilities on header/containers, override them here */
+html.theme-dark header,
+html.theme-dark .site-header,
+html.theme-dark .page-header {
+  background: var(--bg-page) !important;
+}
+html.theme-light header,
+html.theme-light .site-header,
+html.theme-light .page-header {
+  background: var(--bg-page) !important;
+}
+
+/* Hover lift */
+html.theme-dark .ecom-card:hover,
+html.theme-light .ecom-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(2,6,23,0.12);
+}
+
+/* accessibility */
+:focus { outline: 3px solid rgba(99,102,241,0.18); outline-offset: 2px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* @import "tailwindcss"; 
+
+
+
+:root { --bg-page: #07122b; --fg: #E6EEF8; }
+body { background: var(--bg-page); color: var(--fg); }
+
+
+
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #071226;        
+    --bg-shell: #0F1B2B;      
+    --card-bg: #0B1624;        
+    --card-surface: #122033;   
+    --text-primary: #E6EEF8;   
+    --text-muted: #9AA8B2;     
+    --accent: #7C5CFF;         
+    --accent-hover: #654DE6;   
+    --border-soft: rgba(255,255,255,0.04);
+    --card-shadow: 0 8px 28px rgba(2,6,23,0.65);
+  }
+}
+
+
+.app-bg { background: var(--bg-page); }
+.app-shell { background: var(--bg-shell); }
+
+.ecom-card {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
+  border-radius: 0.75rem;      
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+}
+
+.ecom-card .card-body { background: var(--card-surface); }
+
+.ecom-btn {
+  background: var(--accent);
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  padding: .6rem 1rem;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.ecom-btn:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16,13,55,0.35); }
+
+
+.text-muted { color: var(--text-muted); }
+
+
+.ecom-card img { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12)); }
+ */
+
+
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
 
 :root {
   --background: #ffffff;
@@ -12,15 +226,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
+}  */
