@@ -55,6 +55,7 @@ export default function EcommerceCard({
           className="h-full w-full object-cover object-center"
           style={{ objectPosition: "centre" }} 
         /> */}
+        {image ? (
           <Image
             src={image}
             alt={title}
@@ -64,7 +65,11 @@ export default function EcommerceCard({
             quality={80}
             priority={false} // set true for above-the-fold if needed
           />
-
+        ) : (
+          <div className="h-full w-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+            No Image 
+          </div>
+        )}
         {/* Favorite heart overlay (absolute) */}
         <button
           type="button"
@@ -109,7 +114,7 @@ export default function EcommerceCard({
       <div className="p-5 card-body flex-1">
         <div className="mb-3 flex items-start justify-between gap-4">
           <div className="flex-1">
-            <p className="text-sm font-medium leading-snug text-[var(--text-primary)]">
+            <p className="text-sm font-medium leading-snug text-[var(--text-primary)] line-clamp-2 ">
               {title}
             </p>
             {description && (

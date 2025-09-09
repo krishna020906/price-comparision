@@ -63,14 +63,14 @@ export default function SearchPage() {
                 <p className="text-yellow-600">⚠️ {payload.error}</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {payload.map(p => (
+                  {payload.map((p, i) => (
                     <EcommerceCard
-                      key={`${source}-${p.asin}`}
+                      key={`${source}-${p.asin || p.link || p.image || i}`}
                       image={p.image}
                       title={p.title}
                       price={p.price}
                       description={p.title}
-                      onClick={() => router.push(`/product/${source}/${p.asin}`)}
+                      onClick={() => router.push(`/product/${source}/${p.asin || i}`)}
                     />
                   ))}
                 </div>

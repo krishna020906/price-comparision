@@ -1,10 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: [
-            "images-na.ssl-images-amazon.com",
-            "m.media-amazon.com",
-            // add any domains your image URLs use
+        remotePatterns: [
+        // Amazon images
+        {
+            protocol: 'https',
+            hostname: 'm.media-amazon.com',
+            pathname: '/**'
+        },
+        // Flipkart (example hosts — check actual hostnames in your debug screenshots)
+        {
+            protocol: 'https',
+            hostname: 'rukminim1.flixcart.com',
+            pathname: '/**'
+        },
+         { protocol: 'https', hostname: 'images-eu.ssl-images-amazon.com', pathname: '/**' },
         ],
     },
 };

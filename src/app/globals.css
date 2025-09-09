@@ -17,7 +17,18 @@ html.theme-dark {
   --text-muted: #9AA8B2;
   --accent: #0b63ff;
   --border-soft: rgba(255,255,255,0.04);
-  --card-shadow: 0 10px 30px rgba(2,6,23,0.55);
+
+  --hover-surface: rgba(255,255,255,0.03);
+  --hover-surface-active: rgba(255,255,255,0.02);
+    /* stronger card shadow: deeper and more opaque */
+  --card-shadow: 0 18px 50px rgba(2,6,23,0.72);
+
+  /* header-specific shadow: layered for depth + slight accent glow */
+  --header-shadow: 0 10px 30px rgba(2,6,23,0.65), 0 2px 8px rgba(11,99,255,0.04);
+
+  /* subtle border to increase separation from background */
+  --header-border: rgba(255,255,255,0.03);
+
 }
 
 /* Light theme values */
@@ -31,8 +42,46 @@ html.theme-light {
   --accent: #0b63ff;
   --border-soft: rgba(15,23,42,0.06);
   --card-shadow: 0 8px 22px rgba(2,6,23,0.06);
+  --hover-surface: rgba(2,6,23,0.04);
+  --hover-surface-active: rgba(2,6,23,0.02);
 }
 
+/* Apply header shadow + border (override Tailwind's shadow if present) */
+html.theme-dark header,
+html.theme-dark .site-header,
+html.theme-dark .page-header {
+  box-shadow: var(--header-shadow) !important;
+  border-bottom: 1px solid var(--header-border) !important;
+}
+
+/* stronger search/input shadows in dark mode too */
+html.theme-dark input,
+html.theme-dark .search-input {
+  box-shadow: 0 8px 22px rgba(2,6,23,0.55) !important;
+}
+
+/* ensure cards use the updated card shadow */
+html.theme-dark .ecom-card {
+  box-shadow: var(--card-shadow) !important;
+}
+
+.hover-theme-bg:hover {
+  background: var(--hover-surface) !important;
+}
+.hover-theme-bg:active {
+  background: var(--hover-surface-active) !important;
+}
+
+/* Optional: override common Tailwind hover utilities that cause light backgrounds in dark mode.
+   This ensures existing `hover:bg-gray-100` / `hover:bg-gray-50` usages pick up the theme instead. */
+html.theme-dark .hover\:bg-gray-100:hover,
+html.theme-dark .hover\:bg-gray-50:hover {
+  background: var(--hover-surface) !important;
+}
+html.theme-light .hover\:bg-gray-100:hover,
+html.theme-light .hover\:bg-gray-50:hover {
+  background: var(--hover-surface) !important;
+}
 /* Fallbacks if JS disabled rely on user OS setting */
 @media (prefers-color-scheme: dark) {
   :root {

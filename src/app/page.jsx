@@ -1,4 +1,19 @@
 'use client'
+import Navbar from "@/components/NavBar";
+
+import LandingPage from "@/components/NavBar";
+export default function Page() {
+  return (
+    <>
+      <Navbar />
+
+    </>
+  );
+}
+
+
+
+/*
 import React, { useState } from 'react'
 // import axios from 'axios'
 import { useRouter } from 'next/navigation'
@@ -42,5 +57,5 @@ export default function Home() {
     </div>
   )
 }
-
+*/
 
