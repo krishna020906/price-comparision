@@ -2,6 +2,7 @@
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import ThemeToggle from "@/components/ThemeToggle";
+import Script from "next/script";
 
 const setThemeScript = `
 (function() {
@@ -31,7 +32,11 @@ export default function RootLayout({ children }) {
       <head>
         {/* runs before React mounts so CSS variables are available immediately */}
         <script dangerouslySetInnerHTML={{ __html: setThemeScript }} />
-        
+        {/* Lottie player CDN (available before interactive scripts) */}
+        <Script
+          src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"
+          strategy="beforeInteractive"
+        />
       </head>
       <body className= " min-h-screen antialiased ">
         <ThemeToggle />
