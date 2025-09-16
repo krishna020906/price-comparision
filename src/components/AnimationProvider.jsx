@@ -11,111 +11,153 @@ export const AnimationContext = createContext({
 });
 
 export default function AnimationProvider({ children, tlConfig = {} }) {
-  // single timeline for the whole app (paused until we call play)
   const tlRef = useRef(gsap.timeline({ paused: true, defaults: { ease: "power3.out" }, ...tlConfig }));
-  // registrations array: components push a function here that receives the timeline
   const registrations = useRef([]);
 
-  // components will call register(fn) to add their animation builder
   const register = useCallback((fn) => {
     registrations.current.push(fn);
     const idx = registrations.current.length - 1;
-    // return an unregister function (if component unmounts before build)
     return () => { registrations.current[idx] = null; };
   }, []);
 
   useEffect(() => {
-    // 1) Collect candidate items
+    // Helper: reveal items immediately (fallback)
+    const revealAll = (els) => {
+      try {
+        if (!els || els.length === 0) return;
+        // set visible quickly and clear transform/opacity inline props so they look normal
+        gsap.set(els, { opacity: 1, y: 0, clearProps: "opacity,transform,willChange" });
+      } catch (err) {
+        // fallback manual DOM
+        (els || []).forEach(el => {
+          try {
+            el.style.opacity = "1";
+            el.style.transform = "none";
+            el.style.willChange = "auto";
+          } catch (_) {}
+        });
+      }
+    };
+
+    // collect elements (defensive)
     let allItems = [];
     try {
-      // returns an array (or []), of nodes matching the selector
       allItems = gsap.utils.toArray("[data-animate]");
     } catch (e) {
       allItems = [];
     }
+    const elements = allItems.filter(el => el && el.nodeType === 1);
 
-    // Filter only real DOM elements (nodeType === 1)
-    const elements = allItems.filter((el) => el && el.nodeType === 1);
-
-    // If user prefers reduced motion: reveal and skip animations entirely.
+    // reduced motion handling
     const prefersReduced = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) {
       if (elements.length) {
-        try {
-          gsap.set(elements, { opacity: 1, y: 0, clearProps: "all" });
-        } catch (e) {
-          // fallback direct DOM style set
-          elements.forEach((el) => {
-            try {
-              el.style.opacity = "1";
-              el.style.transform = "none";
-            } catch (_) {}
-          });
-        }
+        revealAll(elements);
       }
       try { document.documentElement.classList.remove("preload-animations"); } catch (e) {}
-      // still call registrations so layout-related tweens can attach if needed
-      registrations.current.forEach((fn) => { try { fn && fn(tlRef.current); } catch (err) {} });
-      // optionally we can play timeline, but it's fine to leave it paused
+      // still call registrations (optional)
+      registrations.current.forEach(fn => { try { fn && fn(tlRef.current); } catch (e) {} });
       tlRef.current.play();
       return;
     }
 
-    // 2) Ensure inline hidden state is set under JS control (prevents flash when removing CSS class)
+    // Take JS control of initial state so removing CSS won't flash
     if (elements.length) {
       try {
         gsap.set(elements, { opacity: 0, y: -6, clearProps: false });
       } catch (err) {
-        // If GSAP throws (e.g. some unexpected target), fall back to manual inline styles
-        elements.forEach((el) => {
+        // fallback to direct DOM styles
+        elements.forEach(el => {
           try {
             el.style.opacity = "0";
-            // apply transform with the same values as your CSS (translateY(-6px))
             el.style.transform = "translateY(-6px)";
-            // keep will-change as a hint
             el.style.willChange = "transform, opacity";
           } catch (_) {}
         });
       }
     }
 
-    // 3) Build timeline by calling all registration functions
+    // Build timeline: call each registration fn so they attach tweens to tlRef.current
     const created = [];
     try {
-      registrations.current.forEach((fn) => {
+      registrations.current.forEach(fn => {
         if (!fn) return;
-        const maybe = fn(tlRef.current);
-        if (maybe) {
-          if (Array.isArray(maybe)) created.push(...maybe);
-          else created.push(maybe);
+        try {
+          const maybe = fn(tlRef.current);
+          if (maybe) {
+            if (Array.isArray(maybe)) created.push(...maybe);
+            else created.push(maybe);
+          }
+        } catch (e) {
+          console.error("Registration function threw:", e);
         }
       });
     } catch (e) {
       console.error("AnimationProvider build error:", e);
     }
 
-    // 4) Remove the preload CSS class now that JS owns inline state (prevents FOUC)
-    try {
-      document.documentElement.classList.remove("preload-animations");
-    } catch (e) {
-      // ignore
+    // Remove preload CSS class now that inline state exists
+    try { document.documentElement.classList.remove("preload-animations"); } catch (e) {}
+
+    // DEBUG: show counts — remove in production if you want
+    // eslint-disable-next-line no-console
+    console.log("AnimationProvider: registered fns:", registrations.current.filter(Boolean).length, "timeline children:", tlRef.current.getChildren().length, "timeline duration:", tlRef.current.duration());
+
+    // If the timeline actually has content, play it. Otherwise reveal immediately.
+    const tlHasContent = (() => {
+      try {
+        // totalDuration may be preferable if nested timelines used
+        return tlRef.current.totalDuration && tlRef.current.totalDuration() > 0;
+      } catch (e) {
+        return tlRef.current.duration && tlRef.current.duration() > 0;
+      }
+    })();
+
+    if (!tlHasContent) {
+      // no timeline content — reveal UI immediately so nothing stays hidden
+      revealAll(elements);
+      // still play the (empty) timeline to keep state consistent
+      try { tlRef.current.play(); } catch (_) {}
+      return;
     }
 
-    // 5) Play on the next frame so browser painted and everything is ready
     requestAnimationFrame(() => {
       try {
         tlRef.current.play();
+        // When the timeline finishes, ensure everything is visible and clear temporary inline styles.
+        tlRef.current.eventCallback("onComplete", () => {
+          try {
+            const items = gsap.utils.toArray("[data-animate]");
+            // make sure final visible state is applied, and remove transform/opacity inline props
+            gsap.set(items, { opacity: 1, y: 0, clearProps: "transform,opacity,willChange" });
+            // remove any temporary inline display we may have set earlier
+            items.forEach(el => {
+              try { el.style.removeProperty("display"); } catch (e) {}
+            });
+          } catch (e) {
+            // fallback: iterate safely
+            const items = document.querySelectorAll("[data-animate]");
+            items.forEach(el => {
+              try {
+                el.style.opacity = "1";
+                el.style.transform = "none";
+                el.style.removeProperty("display");
+              } catch (_) {}
+            });
+          }
+        });
       } catch (e) {
         console.error("Error playing timeline:", e);
       }
     });
 
+
     // cleanup when provider unmounts
     return () => {
-      created.forEach((t) => t && t.kill && t.kill());
+      created.forEach(t => t && t.kill && t.kill());
       try { tlRef.current.kill(); } catch (e) {}
     };
-    // NOTE: run only once on mount
+    // run once
   }, []);
 
   return (
@@ -124,70 +166,3 @@ export default function AnimationProvider({ children, tlConfig = {} }) {
     </AnimationContext.Provider>
   );
 }
-
-
-
-
-
-
-
-
-// // src/components/AnimationProvider.jsx
-// "use client";
-
-// import React, { createContext, useRef, useEffect, useCallback } from "react";
-// import gsap from "gsap";
-
-
-// // Context gives children a register function and the timeline (if needed)
-// export const AnimationContext = createContext({
-//   register: () => {},
-//   tl: null,
-// });
-
-// export default function AnimationProvider({ children, tlConfig = {} }) {
-//   // single timeline for the whole app
-//   const tlRef = useRef(gsap.timeline({ paused: true, defaults: { ease: "power3.out" }, ...tlConfig }));
-//   // registrations array: components push a function here that receives the timeline
-//   const registrations = useRef([]);
-
-//   // components will call register(fn) to add their animation builder
-//   const register = useCallback((fn) => {
-//     registrations.current.push(fn);
-//     const idx = registrations.current.length - 1;
-//     // return an unregister function (if component unmounts before build)
-//     return () => { registrations.current[idx] = null; };
-//   }, []);
-
-//   useEffect(() => {
-//     // Build timeline by calling all registration functions
-//     const created = [];
-//     try {
-//       registrations.current.forEach((fn) => {
-//         if (!fn) return;
-//         const maybe = fn(tlRef.current); // registration function builds animations on the shared timeline
-//         if (maybe) {
-//           if (Array.isArray(maybe)) created.push(...maybe);
-//           else created.push(maybe);
-//         }
-//       });
-//       // Play after a frame so browser painted and refs exist
-//       requestAnimationFrame(() => tlRef.current.play());
-//     } catch (e) {
-//       console.error("AnimationProvider build error:", e);
-//     }
-
-//     // cleanup when provider unmounts
-//     return () => {
-//       created.forEach((t) => t && t.kill && t.kill());
-//       try { tlRef.current.kill(); } catch (e) {}
-//     };
-//     // NOTE: run only once on mount
-//   }, []);
-
-//   return (
-//     <AnimationContext.Provider value={{ register, tl: tlRef.current }}>
-//       {children}
-//     </AnimationContext.Provider>
-//   );
-// }

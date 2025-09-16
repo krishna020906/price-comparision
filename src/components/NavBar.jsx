@@ -17,13 +17,7 @@ export default function Navbar() {
     // animate nav sliding down slightly, timed relative to global timeline
     // You can position it at a label or absolute time: "start" or e.g. 0
     // Here we animate it near the start
-    tl.from(items, {
-    y: -8,
-    opacity: 0,
-    duration: 0.45,
-    stagger: 0.08,
-    ease: "power2.out"
-  }, 0); // 0 is the position on the global timeline (change to a label or offset as needed)
+  tl.fromTo(items, { opacity: 0, y: -6 }, { opacity: 1, y: 0, stagger: 0.06, duration: 0.45 });
   }, []); // no deps, ref is stable
 
   return (
@@ -51,7 +45,7 @@ export default function Navbar() {
 
             <a
               href="/"
-              className="hidden lg:flex items-center gap-2 text-sm rounded-full px-3 py-2 hover-theme-bg"
+              className=" lg:flex items-center gap-2 text-sm rounded-full px-3 py-2 hover-theme-bg"
             >
               <CiHome className="text-xl" style={{ color: 'var(--accent)' }} />
               <span data-animate >Home</span>
@@ -59,7 +53,7 @@ export default function Navbar() {
           </div>
 
           {/* Middle: Search (centered on md+). Wide, rounded, search icon button. */}
-          <div data-animate className="flex-1 mx-4 hidden md:flex justify-center">
+          <div data-animate className="flex-1 mx-4  md:flex justify-center">
             <div className="w-full max-w-2xl">
               <label htmlFor="site-search" className="sr-only">
                 Search
@@ -86,19 +80,19 @@ export default function Navbar() {
 
           {/* Right: Links + mobile toggle */}
           <div className="flex items-center space-x-2">
-            <nav className="hidden md:flex items-center space-x-4">
+            <nav className=" md:flex items-center space-x-4">
               <a data-animate href="#how" className="text-sm px-3 py-2 rounded-full hover-theme-bg">
                 How it works
               </a>
               <button data-animate
-                className="hidden lg:inline-flex items-center px-4 py-2 rounded-full border"
+                className=" lg:inline-flex items-center px-4 py-2 rounded-full border"
                 style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
               >
                 Sign in
               </button>
             </nav>
 
-            <div className="md:hidden">
+            <div className="">
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label="Toggle menu"
@@ -125,7 +119,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden px-4 pb-4">
+        <div className=" px-4 pb-4">
           <div className="space-y-3">
             <a href="/" className="flex items-center gap-3 px-3 py-2 rounded-lg hover-theme-bg">
               <CiHome className="text-2xl" style={{ color: 'var(--accent)' }} /> Home
