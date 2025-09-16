@@ -3,6 +3,7 @@ import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 import ThemeToggle from "@/components/ThemeToggle";
 import Script from "next/script";
+import TopProviders from "@/components/TopProviders";
 
 const setThemeScript = `
 (function() {
@@ -12,9 +13,14 @@ const setThemeScript = `
       t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
     }
     document.documentElement.classList.add(t === 'light' ? 'theme-light' : 'theme-dark');
+
+    // PREVENT FOUC: hide data-animate items until JS takes control
+    // we add this class very early so the CSS rule html.preload-animations [data-animate] applies immediately
+    document.documentElement.classList.add('preload-animations');
   } catch (e) {}
 })();
 `;
+
 
 // import { ThemeProvider } from "./theme-provider";
 
@@ -41,7 +47,11 @@ export default function RootLayout({ children }) {
       <body className= " min-h-screen antialiased ">
         <ThemeToggle />
        
-          <main>{children}</main>
+          <main>
+            <TopProviders>
+              {children}
+            </TopProviders>
+            </main>
         
       </body>
     </html>

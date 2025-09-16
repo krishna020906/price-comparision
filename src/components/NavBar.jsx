@@ -1,17 +1,39 @@
+// src/components/Navbar.jsx
+"use client";
+
 import React, { useState } from 'react';
 import { CiHome, CiSearch } from 'react-icons/ci';
+import { useRef } from 'react';
+import { useRegisterAnimation } from "@/lib/useRegisterAnimation";
+import gsap from 'gsap';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navRef = useRef(null);
+
+  useRegisterAnimation((tl) => {
+      // Find only elements inside this nav component that have data-animate
+  const items = gsap.utils.toArray(navRef.current.querySelectorAll('[data-animate]'));
+    // animate nav sliding down slightly, timed relative to global timeline
+    // You can position it at a label or absolute time: "start" or e.g. 0
+    // Here we animate it near the start
+    tl.from(items, {
+    y: -8,
+    opacity: 0,
+    duration: 0.45,
+    stagger: 0.08,
+    ease: "power2.out"
+  }, 0); // 0 is the position on the global timeline (change to a label or offset as needed)
+  }, []); // no deps, ref is stable
 
   return (
-    <header className="w-full shadow-lg" role="banner">
+    <header data-animate  ref={navRef} className="w-full shadow-lg" role="banner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Brand + Home */}
           <div className="flex items-center space-x-4">
             <a href="/" className="flex items-center space-x-3" aria-label="Price Compare home">
-              <span
+              <span data-animate
                 className="inline-flex items-center justify-center w-10 h-10 rounded-full"
                 style={{
                   background: 'var(--accent)',
@@ -22,7 +44,7 @@ export default function Navbar() {
                 <strong>PC</strong>
               </span>
 
-              <span className="text-lg font-semibold" style={{ color: 'var(--accent)' }}>
+              <span data-animate className="text-lg font-semibold" style={{ color: 'var(--accent)' }}>
                 Price Compare
               </span>
             </a>
@@ -32,12 +54,12 @@ export default function Navbar() {
               className="hidden lg:flex items-center gap-2 text-sm rounded-full px-3 py-2 hover-theme-bg"
             >
               <CiHome className="text-xl" style={{ color: 'var(--accent)' }} />
-              <span>Home</span>
+              <span data-animate >Home</span>
             </a>
           </div>
 
           {/* Middle: Search (centered on md+). Wide, rounded, search icon button. */}
-          <div className="flex-1 mx-4 hidden md:flex justify-center">
+          <div data-animate className="flex-1 mx-4 hidden md:flex justify-center">
             <div className="w-full max-w-2xl">
               <label htmlFor="site-search" className="sr-only">
                 Search
@@ -65,10 +87,10 @@ export default function Navbar() {
           {/* Right: Links + mobile toggle */}
           <div className="flex items-center space-x-2">
             <nav className="hidden md:flex items-center space-x-4">
-              <a href="#how" className="text-sm px-3 py-2 rounded-full hover-theme-bg">
+              <a data-animate href="#how" className="text-sm px-3 py-2 rounded-full hover-theme-bg">
                 How it works
               </a>
-              <button
+              <button data-animate
                 className="hidden lg:inline-flex items-center px-4 py-2 rounded-full border"
                 style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
               >

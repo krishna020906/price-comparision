@@ -45,6 +45,23 @@ html.theme-light {
   --hover-surface: rgba(2,6,23,0.04);
   --hover-surface-active: rgba(2,6,23,0.02);
 }
+/* hide animated elements only while .preload-animations exists on <html> */
+/* (prevents flash before JS / GSAP runs) */
+html.preload-animations [data-animate] {
+  opacity: 0;
+  transform: translateY(-6px);
+  will-change: transform, opacity;
+}
+
+/* If user prefers reduced motion — don't hide or animate */
+@media (prefers-reduced-motion: reduce) {
+  html.preload-animations [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+
 
 /* Apply header shadow + border (override Tailwind's shadow if present) */
 html.theme-dark header,

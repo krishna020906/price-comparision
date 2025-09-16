@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Player } from "@lottiefiles/react-lottie-player";
+import { useRef } from 'react';
 
 /**
  * src/components/Hero.jsx
