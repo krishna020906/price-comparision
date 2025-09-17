@@ -17,11 +17,11 @@ export default function Navbar() {
     // animate nav sliding down slightly, timed relative to global timeline
     // You can position it at a label or absolute time: "start" or e.g. 0
     // Here we animate it near the start
-  tl.fromTo(items, { opacity: 0, y: -6 }, { opacity: 1, y: 0, stagger: 0.06, duration: 0.45 });
+  tl.fromTo(items, { opacity: 0, y: -12 }, { opacity: 1, y: 0, stagger: 0.5, duration: 3 });
   }, []); // no deps, ref is stable
 
   return (
-    <header data-animate  ref={navRef} className="w-full shadow-lg" role="banner">
+    <header   ref={navRef} className="w-full shadow-lg" role="banner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Brand + Home */}
@@ -47,7 +47,7 @@ export default function Navbar() {
               href="/"
               className=" lg:flex items-center gap-2 text-sm rounded-full px-3 py-2 hover-theme-bg"
             >
-              <CiHome className="text-xl" style={{ color: 'var(--accent)' }} />
+              <CiHome data-animate className="text-xl" style={{ color: 'var(--accent)' }} />
               <span data-animate >Home</span>
             </a>
           </div>
