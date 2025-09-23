@@ -17,7 +17,7 @@ export default function Navbar() {
     // animate nav sliding down slightly, timed relative to global timeline
     // You can position it at a label or absolute time: "start" or e.g. 0
     // Here we animate it near the start
-  tl.fromTo(items, { opacity: 0, y: -12 }, { opacity: 1, y: 0, stagger: 0.5, duration: 3 });
+  tl.fromTo(items, { opacity: 0, y: -40 }, { opacity: 1, y: 0, stagger: 0.4, duration: 2 });
   }, []); // no deps, ref is stable
 
   return (

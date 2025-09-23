@@ -60,6 +60,43 @@ html.preload-animations [data-animate] {
     transform: none !important;
   }
 }
+/* make pulses non-interactive & subtle */
+.node + .pulse,
+.pulse {
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* ensure svg nodes look good on dark/light */
+.node {
+  transition: transform .18s ease, filter .18s ease;
+}
+/* ProcessFlowBuckets visual helpers */
+.bucket-content img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform .18s ease;
+}
+
+/* small price-tag style (if you want to override created inline tag) */
+.price-tag {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* subtle responsive adjustments */
+@media (max-width: 1023px) {
+  .bucket { min-height: 100px; }
+}
+
+
+/* optional: make the right panel not overflow on small screens */
+@media (max-width: 1024px) {
+  section svg { height: 320px; }
+}
+
 
 
 

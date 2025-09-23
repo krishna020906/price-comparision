@@ -1,6 +1,7 @@
 'use client'
 import Navbar from "@/components/NavBar";
 import Hero from "@/components/Hero";
+import ProcessFlowBuckets from "@/components/ProcessFlowFeature";
 
 import LandingPage from "@/components/NavBar";
 export default function Page() {
@@ -8,6 +9,8 @@ export default function Page() {
     <>
       <Navbar />
       <Hero/>
+      <ProcessFlowBuckets/>
+
 
     </>
   );
