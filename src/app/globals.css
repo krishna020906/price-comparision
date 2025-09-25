@@ -79,6 +79,17 @@ html.preload-animations [data-animate] {
   border-radius: 8px;
   transition: transform .18s ease;
 }
+/* remove horizontal overflow globally (prevents x-scroll) */
+/* html, body {
+  overflow-x: hidden;
+} */
+
+/* make sure full-screen sections don't introduce horizontal scroll */
+section { max-width: 100vw; }
+
+/* small helper so the compare labels start invisible before JS runs */
+[ref] { -webkit-font-smoothing: antialiased; }
+
 
 /* small price-tag style (if you want to override created inline tag) */
 .price-tag {
