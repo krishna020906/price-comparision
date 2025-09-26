@@ -3,7 +3,7 @@ import Navbar from "@/components/NavBar";
 import Hero from "@/components/Hero";
 import { LineSection } from "@/components/ProcessFlowFeature";
 import { BucketsSection } from "@/components/ProcessFlowFeature";
-import ProcessFlowSplit from "@/components/ProcessFlowFeature";
+import ProcessFlowVertical from "@/components/ProcessFlowFeature";
 
 import LandingPage from "@/components/NavBar";
 export default function Page() {
@@ -11,7 +11,7 @@ export default function Page() {
     <>
       <Navbar />
       <Hero/>
-      <ProcessFlowSplit/>
+      <ProcessFlowVertical/>
       
 
     </>

@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+
 // src/components/ProcessFlowSplit.jsx
 "use client";
 
@@ -209,8 +217,8 @@ export function LineSection({
   );
 }
 
-/* Buckets Section - triggers on enter */
-// Replace only the BucketsSection in your file with this code
+// Replace your BucketsSection with this implementation
+// Replace your BucketsSection with this function (copy-paste)
 export function BucketsSection({
   thumbs = ["/image_0.jpeg", "/image_1.jpeg", "/image_2.jpeg", "/image_1.jpeg"],
   labels = ["Amazon", "Flipkart", "Myntra", "BestPrice"]
@@ -218,19 +226,48 @@ export function BucketsSection({
   const wrapRef = useRef(null);
   const bucketRefs = useRef([]);
   const thumbPlaceholders = useRef([]);
-  const flightLayer = useRef(null);
+  const bodyFlightLayer = useRef(null);
+
+  // ensure an image has intrinsic size (same helper as before)
+  const ensureImageReady = (imgEl) => {
+    return new Promise((resolve) => {
+      if (!imgEl) return resolve(false);
+      if (imgEl.complete && imgEl.naturalWidth) return resolve(true);
+      const onLoad = () => { cleanup(); resolve(true); };
+      const onErr = () => { cleanup(); resolve(false); };
+      const cleanup = () => { imgEl.removeEventListener("load", onLoad); imgEl.removeEventListener("error", onErr); };
+      imgEl.addEventListener("load", onLoad);
+      imgEl.addEventListener("error", onErr);
+      setTimeout(() => { cleanup(); resolve(!!(imgEl.complete && imgEl.naturalWidth)); }, 1000);
+    });
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const wrap = wrapRef.current;
     if (!wrap) return;
 
+    // create a flight layer attached to document.body to avoid clipping / transforms
+    const flight = document.createElement("div");
+    flight.style.position = "fixed";
+    flight.style.left = "0";
+    flight.style.top = "0";
+    flight.style.width = "100%";
+    flight.style.height = "100%";
+    flight.style.pointerEvents = "none";
+    flight.style.zIndex = "2147483646";
+    document.body.appendChild(flight);
+    bodyFlightLayer.current = flight;
+
     let revealed = false;
-    const revealBuckets = () => {
+    let seenInitial = false;
+    let waitingForExit = false;
+
+    const revealBuckets = async () => {
       if (revealed) return;
       revealed = true;
+      console.info("[Buckets] revealBuckets() triggered");
 
-      // reveal buckets
       const buckets = bucketRefs.current.filter(Boolean);
       gsap.fromTo(
         buckets,
@@ -238,79 +275,124 @@ export function BucketsSection({
         { y: 0, opacity: 1, scale: 1, stagger: 0.09, duration: 0.7, ease: "power3.out" }
       );
 
-      // animate thumbs flying into buckets after a short delay
+      await new Promise(r => requestAnimationFrame(r));
+
+      await Promise.all(thumbPlaceholders.current.map(async (ph, idx) => {
+        if (!ph) return false;
+        const img = ph.querySelector("img");
+        const ok = await ensureImageReady(img);
+        console.info(`[Buckets] thumb ${idx} image ready:`, ok, img && img.naturalWidth);
+        return ok;
+      }));
+
       setTimeout(() => {
         thumbPlaceholders.current.forEach((ph, i) => {
           try {
             if (!ph) return;
-            const rect = ph.getBoundingClientRect();
+            const phRect = ph.getBoundingClientRect();
             const bucket = bucketRefs.current[i];
-            const bucketRect = bucket && bucket.getBoundingClientRect();
-            if (!bucketRect) return;
+            if (!bucket) return;
+            const bucketRect = bucket.getBoundingClientRect();
 
             const clone = ph.cloneNode(true);
             clone.style.position = "absolute";
-            clone.style.left = `${rect.left}px`;
-            clone.style.top = `${rect.top}px`;
-            clone.style.width = `${rect.width}px`;
-            clone.style.height = `${rect.height}px`;
-            clone.style.zIndex = 99999;
+            clone.style.left = `${phRect.left}px`;
+            clone.style.top = `${phRect.top}px`;
+            clone.style.width = `${phRect.width}px`;
+            clone.style.height = `${phRect.height}px`;
+            clone.style.margin = "0";
+            clone.style.zIndex = 2147483647;
             clone.style.pointerEvents = "none";
-            flightLayer.current.appendChild(clone);
+            clone.style.border = "2px solid rgba(255,255,255,0.08)";
+            clone.style.boxShadow = "0 10px 30px rgba(0,0,0,0.45)";
+            clone.style.borderRadius = getComputedStyle(ph).borderRadius || "8px";
+            flight.appendChild(clone);
 
-            const targetX = bucketRect.left + bucketRect.width / 2 - rect.width / 2;
-            const targetY = bucketRect.top + bucketRect.height / 2 - rect.height / 2;
+            const targetX = bucketRect.left + bucketRect.width / 2 - phRect.width / 2;
+            const targetY = bucketRect.top + bucketRect.height / 2 - phRect.height / 2;
+
             gsap.to(clone, {
-              x: targetX - rect.left,
-              y: targetY - rect.top,
+              duration: 0.95,
+              x: targetX - phRect.left,
+              y: targetY - phRect.top,
               scale: 0.8,
-              duration: 0.9,
               ease: "power3.inOut",
-              onComplete: () => clone.remove()
+              onComplete: () => {
+                try {
+                  let content = bucket.querySelector(".bucket-content");
+                  if (!content) {
+                    content = document.createElement("div");
+                    content.className = "bucket-content";
+                    content.style.display = "flex";
+                    content.style.gap = "8px";
+                    content.style.alignItems = "center";
+                    content.style.marginTop = "10px";
+                    bucket.appendChild(content);
+                  }
+                  const img = document.createElement("img");
+                  const srcImg = clone.querySelector("img");
+                  img.src = srcImg ? srcImg.src : "";
+                  img.style.width = "64px";
+                  img.style.height = "64px";
+                  img.style.objectFit = "cover";
+                  img.style.borderRadius = "8px";
+                  content.appendChild(img);
+                } catch (e) { console.warn("append to bucket failed", e); }
+                clone.remove();
+                console.info(`[Buckets] thumb ${i} flight complete`);
+              }
             });
           } catch (e) {
-            // swallow per-item errors
-            console.warn("fly thumb item error", e);
+            console.warn("fly-thumb error for index", i, e);
           }
         });
       }, 520);
     };
 
-    // 1) Primary: ScrollTrigger onEnter
-    const st = ScrollTrigger.create({
-      trigger: wrap,
-      start: "top center",
-      onEnter: revealBuckets,
-      once: true,
-      markers: false // set to true for debugging markers
-    });
+    // expose for manual testing (optional)
+    if (typeof window !== "undefined") window.__revealBuckets = revealBuckets;
 
-    // 2) Fallback: IntersectionObserver in case start value doesn't fire
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
+    // IntersectionObserver that ignores the initial "already-in-view" callback:
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!seenInitial) {
+          // first callback: mark we've seen the initial state and decide behavior
+          seenInitial = true;
           if (entry.isIntersecting) {
+            // section is already in view at mount — wait for an exit+reenter
+            waitingForExit = true;
+            console.info("[Buckets IO] initially in view — waiting for exit then re-enter to reveal");
+          } else {
+            // not in view initially — reveal when it enters
+            console.info("[Buckets IO] initially out of view — will reveal on first intersection");
+            if (entry.isIntersecting) revealBuckets();
+          }
+          continue;
+        }
+
+        // subsequent observations:
+        if (waitingForExit) {
+          if (!entry.isIntersecting) {
+            // user scrolled away — now next enter will trigger reveal
+            waitingForExit = false;
+            console.info("[Buckets IO] left view — now will reveal on next enter");
+          }
+        } else {
+          if (entry.isIntersecting) {
+            // normal enter
             revealBuckets();
           }
         }
-      },
-      { threshold: 0.25 }
-    );
+      }
+    }, { threshold: 0.25 });
+
     io.observe(wrap);
 
-    // 3) Timed fallback: reveal after a short delay (safety net)
-    const fallbackTimer = setTimeout(() => {
-      revealBuckets();
-    }, 2200);
-
+    // cleanup
     return () => {
-      try { st && st.kill(); } catch (_) {}
-      try { io && io.disconnect(); } catch (_) {}
-      clearTimeout(fallbackTimer);
-      // remove any leftover clones in flight layer
-      try {
-        if (flightLayer.current) flightLayer.current.innerHTML = "";
-      } catch (_) {}
+      try { io.disconnect(); } catch (_) {}
+      if (typeof window !== "undefined" && window.__revealBuckets) delete window.__revealBuckets;
+      try { if (bodyFlightLayer.current) { bodyFlightLayer.current.remove(); bodyFlightLayer.current = null; } } catch (_) {}
     };
   }, []);
 
@@ -320,11 +402,6 @@ export function BucketsSection({
       className="relative w-full min-h-screen h-screen flex items-center justify-center bg-transparent"
       style={{ overflow: "hidden" }}
     >
-      <div
-        ref={flightLayer}
-        style={{ position: "fixed", left: 0, top: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 9999 }}
-      />
-
       <div className="max-w-7xl w-full mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div>
           <h3 className="text-3xl font-bold mb-3">How we find the best price</h3>
@@ -344,7 +421,7 @@ export function BucketsSection({
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
-                  opacity: 0 // initial hidden until reveal runs
+                  opacity: 0
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -380,6 +457,7 @@ export function BucketsSection({
     </section>
   );
 }
+
 
 
 /* Combined default export */
